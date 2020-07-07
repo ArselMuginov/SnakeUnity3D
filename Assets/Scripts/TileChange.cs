@@ -20,6 +20,7 @@ public class TileChange : MonoBehaviour
     float gameTickSpeed;
     TileBase snakeHeadTile;
     Vector3Int applePosition;
+    private bool isPaused;
 
     // Start is called before the first frame update
     void Start()
@@ -37,66 +38,75 @@ public class TileChange : MonoBehaviour
         tilemap.SetTile(snakePositions.First.Value, snakeHeadTile);
         tilemap.SetTile(snakePositions.Last.Value, snakeCell);
         CreateApple();
+
+        isPaused = true;
         InvokeRepeating("GameTick", 0f, gameTickSpeed);
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyUp(KeyCode.LeftArrow) && snakeDirection != Vector3Int.right)
-        {
-            snakeDirection = Vector3Int.left;
-            snakeHeadTile = snakeHeadLeft;
-            tilemap.SetTile(snakePositions.First.Value, snakeHeadTile);
-        }
-        else if (Input.GetKeyUp(KeyCode.UpArrow) && snakeDirection != Vector3Int.down)
-        {
-            snakeDirection = Vector3Int.up;
-            snakeHeadTile = snakeHeadUp;
-            tilemap.SetTile(snakePositions.First.Value, snakeHeadTile);
-        }
-        else if (Input.GetKeyUp(KeyCode.RightArrow) && snakeDirection != Vector3Int.left)
-        {
-            snakeDirection = Vector3Int.right;
-            snakeHeadTile = snakeHeadRight;
-            tilemap.SetTile(snakePositions.First.Value, snakeHeadTile);
-        }
-        else if (Input.GetKeyUp(KeyCode.DownArrow) && snakeDirection != Vector3Int.up)
-        {
-            snakeDirection = Vector3Int.down;
-            snakeHeadTile = snakeHeadDown;
-            tilemap.SetTile(snakePositions.First.Value, snakeHeadTile);
+        if (!isPaused) {
+            float vAxis = Input.GetAxisRaw("Vertical");
+            float hAxis = Input.GetAxisRaw("Horizontal");
+            
+            if (hAxis < 0 && snakeDirection != Vector3Int.right)
+            {
+                snakeDirection = Vector3Int.left;
+                snakeHeadTile = snakeHeadLeft;
+                tilemap.SetTile(snakePositions.First.Value, snakeHeadTile);
+            }
+            else if (vAxis > 0 && snakeDirection != Vector3Int.down)
+            {
+                snakeDirection = Vector3Int.up;
+                snakeHeadTile = snakeHeadUp;
+                tilemap.SetTile(snakePositions.First.Value, snakeHeadTile);
+            }
+            else if (hAxis > 0 && snakeDirection != Vector3Int.left)
+            {
+                snakeDirection = Vector3Int.right;
+                snakeHeadTile = snakeHeadRight;
+                tilemap.SetTile(snakePositions.First.Value, snakeHeadTile);
+            }
+            else if (vAxis < 0 && snakeDirection != Vector3Int.up)
+            {
+                snakeDirection = Vector3Int.down;
+                snakeHeadTile = snakeHeadDown;
+                tilemap.SetTile(snakePositions.First.Value, snakeHeadTile);
+            }
         }
     }
 
     void GameTick()
     {
-        headPositionNext = snakePositions.First.Value + snakeDirection;
+        if (!isPaused) {
+            headPositionNext = snakePositions.First.Value + snakeDirection;
 
-        if (boardBounds.Contains(headPositionNext) && !snakePositions.Contains(headPositionNext))
-        {
-            // Didn't hit the edge and tail
-            tilemap.SetTile(snakePositions.First.Value, snakeCell);
-            tilemap.SetTile(headPositionNext, snakeHeadTile);
-            snakePositions.AddFirst(headPositionNext);
-            
-            if (headPositionNext == applePosition)
+            if (boardBounds.Contains(headPositionNext) && !snakePositions.Contains(headPositionNext))
             {
-                // Eaten an apple, grown
-                CreateApple();
+                // Didn't hit the edge and tail
+                tilemap.SetTile(snakePositions.First.Value, snakeCell);
+                tilemap.SetTile(headPositionNext, snakeHeadTile);
+                snakePositions.AddFirst(headPositionNext);
+                
+                if (headPositionNext == applePosition)
+                {
+                    // Eaten an apple, grown
+                    CreateApple();
+                }
+                else
+                {
+                    // Hasn't eaten an apple, not grown
+                    tilemap.SetTile(snakePositions.Last.Value, emptyCell);
+                    snakePositions.RemoveLast();
+                }
             }
             else
             {
-                // Hasn't eaten an apple, not grown
-                tilemap.SetTile(snakePositions.Last.Value, emptyCell);
-                snakePositions.RemoveLast();
+                // Hit edge or tail, lost
+                Time.timeScale = 0f;
+                gameObject.SetActive(false);
             }
-        }
-        else
-        {
-            // Hit edge or tail, lost
-            Time.timeScale = 0f;
-            gameObject.SetActive(false);
         }
     }
 
@@ -112,5 +122,15 @@ public class TileChange : MonoBehaviour
         }
 
         tilemap.SetTile(applePosition, appleCell);
+    }
+
+    public void OnPlay()
+    {
+        isPaused = false;
+    }
+
+    public void OnExit()
+    {
+        Application.Quit();
     }
 }

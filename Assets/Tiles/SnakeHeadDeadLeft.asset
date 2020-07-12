@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 13312, guid: 0000000000000000e000000000000000, type: 0}
-  m_Name: LargeBorderCorner
+  m_Name: SnakeHeadDeadLeft
   m_EditorClassIdentifier: 
-  m_Sprite: {fileID: 21300000, guid: 46dc2bb687ac6cf47bfd5670ac6d5a45, type: 3}
+  m_Sprite: {fileID: 21300000, guid: ecdda054c2e6a344c9f1703fc281ef7f, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Transform:
     e00: 1

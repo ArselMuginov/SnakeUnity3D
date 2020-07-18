@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -24,17 +25,12 @@ namespace Snake
         private LinkedList<Vector3Int> snakePositions;
         private Vector3Int snakeDirection;
         private TileBase snakeHeadTile;
+        private Vector3Int headPositionNext;
 
         private Vector3Int applePosition;
 
         private Tilemap tilemap;
         private BoundsInt boardBounds;
-
-        private void Start()
-        {
-            tilemap = GetComponent<Tilemap>();
-            boardBounds = tilemap.cellBounds;
-        }
 
         public void InitBoard()
         {
@@ -92,35 +88,28 @@ namespace Snake
             tilemap.SetTile(applePosition, appleCell);
         }
 
-        public bool UpdateBoard()
+        public GameState GetGameState()
         {
-            Vector3Int headPositionNext = snakePositions.First.Value + snakeDirection;
-            bool willBeWithinBoard = boardBounds.Contains(headPositionNext);
-            bool willHitTail = snakePositions.Contains(headPositionNext);
+            headPositionNext = snakePositions.First.Value + snakeDirection;
 
-            if (willBeWithinBoard && !willHitTail)
+            if (headPositionNext == applePosition)
             {
-                // Didn't hit the edge and tail
-                tilemap.SetTile(snakePositions.First.Value, snakeCell);
-                tilemap.SetTile(headPositionNext, snakeHeadTile);
-                snakePositions.AddFirst(headPositionNext);
-
-                if (headPositionNext == applePosition)
-                {
-                    // Eaten an apple, grown
-                    CreateApple();
-                }
-                else
-                {
-                    // Hasn't eaten an apple, not grown
-                    tilemap.SetTile(snakePositions.Last.Value, emptyCell);
-                    snakePositions.RemoveLast();
-                }
-                return false;
+                return GameState.AppleEaten;
+            }
+            else if (boardBounds.Contains(headPositionNext) && !snakePositions.Contains(headPositionNext))
+            {
+                return GameState.NothingHappened;
             }
             else
             {
-                // Hit edge or tail, lost
+                return GameState.Lost;
+            }
+        }
+
+        public void UpdateBoard(GameState gameState)
+        {
+            if (gameState == GameState.Lost)
+            {
                 if (snakeDirection == Vector3Int.left)
                 {
                     snakeHeadTile = snakeHeadDeadLeft;
@@ -139,7 +128,18 @@ namespace Snake
                 }
 
                 tilemap.SetTile(snakePositions.First.Value, snakeHeadTile);
-                return true;
+            }
+            else
+            {
+                tilemap.SetTile(snakePositions.First.Value, snakeCell);
+                tilemap.SetTile(headPositionNext, snakeHeadTile);
+                snakePositions.AddFirst(headPositionNext);
+
+                if (gameState != GameState.AppleEaten)
+                {
+                    tilemap.SetTile(snakePositions.Last.Value, emptyCell);
+                    snakePositions.RemoveLast();
+                }
             }
         }
 
@@ -151,6 +151,12 @@ namespace Snake
             }
 
             tilemap.SetTile(applePosition, emptyCell);
+        }
+
+        private void Start()
+        {
+            tilemap = GetComponent<Tilemap>();
+            boardBounds = tilemap.cellBounds;
         }
     }
 }

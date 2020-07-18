@@ -8,6 +8,11 @@ namespace Snake
         public GameObject mainMenuWindow;
         public GameObject firstSelected;
 
+        public void OnBack()
+        {
+            Back();
+        }
+
         private void OnEnable()
         {
             EventSystem.current.SetSelectedGameObject(null);
@@ -20,11 +25,6 @@ namespace Snake
             {
                 Back();
             }
-        }
-
-        public void OnBack()
-        {
-            Back();
         }
 
         private void Back()

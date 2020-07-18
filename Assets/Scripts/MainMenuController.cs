@@ -9,12 +9,6 @@ namespace Snake
         public GameObject settingsWindow;
         public GameObject firstSelected;
 
-        private void OnEnable()
-        {
-            EventSystem.current.SetSelectedGameObject(null);
-            EventSystem.current.SetSelectedGameObject(firstSelected);
-        }
-
         public void OnPlay()
         {
             gameWindow.SetActive(true);
@@ -30,6 +24,12 @@ namespace Snake
         public void OnExit()
         {
             Application.Quit();
+        }
+
+        private void OnEnable()
+        {
+            EventSystem.current.SetSelectedGameObject(null);
+            EventSystem.current.SetSelectedGameObject(firstSelected);
         }
     }
 }

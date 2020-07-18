@@ -2,10 +2,10 @@
 Simple Snake game using Unity3D
 
 ## Status
-- Currently no GUI logic implemented
-- Game itself functioning
+- All features are implemented
 
 ## How to play
-- Click "Play" with mouse to start game
+- Use mouse or keyboard to navigate menus
+- Adjust speed in settings
 - Use WASD or arrow keys to turn
-- To restart, restart the application
+- Escape is working in menus with Exit (excluding main menu)

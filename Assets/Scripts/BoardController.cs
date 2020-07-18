@@ -22,8 +22,9 @@ namespace Snake
         public TileBase snakeHeadDeadRight;
         public TileBase snakeHeadDeadDown;
 
+        public Vector3Int SnakeDirection { get; private set; }
+
         private LinkedList<Vector3Int> snakePositions;
-        private Vector3Int snakeDirection;
         private TileBase snakeHeadTile;
         private Vector3Int headPositionNext;
 
@@ -32,14 +33,17 @@ namespace Snake
         private Tilemap tilemap;
         private BoundsInt boardBounds;
 
+        private Dictionary<Vector3Int, TileBase> directionToHeadTile;
+        private Dictionary<Vector3Int, TileBase> directionToDeadHeadTile;
+
         public void InitBoard()
         {
-            snakeDirection = Vector3Int.right;
+            SnakeDirection = Vector3Int.right;
             snakeHeadTile = snakeHeadRight;
 
             snakePositions = new LinkedList<Vector3Int>();
             snakePositions.AddFirst(boardBounds.size / 2);
-            snakePositions.AddFirst(snakePositions.First.Value + snakeDirection);
+            snakePositions.AddFirst(snakePositions.First.Value + SnakeDirection);
 
             applePosition = snakePositions.First.Value;
 
@@ -48,29 +52,10 @@ namespace Snake
             CreateApple();
         }
 
-        public void rotateSnake(float vAxis, float hAxis)
+        public void rotateSnake(Vector3Int direction)
         {
-            if (hAxis < 0 && snakeDirection != Vector3Int.right)
-            {
-                snakeDirection = Vector3Int.left;
-                snakeHeadTile = snakeHeadLeft;
-            }
-            else if (vAxis > 0 && snakeDirection != Vector3Int.down)
-            {
-                snakeDirection = Vector3Int.up;
-                snakeHeadTile = snakeHeadUp;
-            }
-            else if (hAxis > 0 && snakeDirection != Vector3Int.left)
-            {
-                snakeDirection = Vector3Int.right;
-                snakeHeadTile = snakeHeadRight;
-            }
-            else if (vAxis < 0 && snakeDirection != Vector3Int.up)
-            {
-                snakeDirection = Vector3Int.down;
-                snakeHeadTile = snakeHeadDown;
-            }
-
+            SnakeDirection = direction;
+            snakeHeadTile = directionToHeadTile[direction];
             tilemap.SetTile(snakePositions.First.Value, snakeHeadTile);
         }
 
@@ -90,7 +75,7 @@ namespace Snake
 
         public GameState GetGameState()
         {
-            headPositionNext = snakePositions.First.Value + snakeDirection;
+            headPositionNext = snakePositions.First.Value + SnakeDirection;
 
             if (headPositionNext == applePosition)
             {
@@ -110,23 +95,7 @@ namespace Snake
         {
             if (gameState == GameState.Lost)
             {
-                if (snakeDirection == Vector3Int.left)
-                {
-                    snakeHeadTile = snakeHeadDeadLeft;
-                }
-                else if (snakeDirection == Vector3Int.up)
-                {
-                    snakeHeadTile = snakeHeadDeadUp;
-                }
-                else if (snakeDirection == Vector3Int.right)
-                {
-                    snakeHeadTile = snakeHeadDeadRight;
-                }
-                else // Down
-                {
-                    snakeHeadTile = snakeHeadDeadDown;
-                }
-
+                snakeHeadTile = directionToDeadHeadTile[SnakeDirection];
                 tilemap.SetTile(snakePositions.First.Value, snakeHeadTile);
             }
             else
@@ -157,6 +126,22 @@ namespace Snake
         {
             tilemap = GetComponent<Tilemap>();
             boardBounds = tilemap.cellBounds;
+
+            directionToHeadTile = new Dictionary<Vector3Int, TileBase>
+            {
+                { Vector3Int.left, snakeHeadLeft },
+                { Vector3Int.right, snakeHeadRight },
+                { Vector3Int.up, snakeHeadUp },
+                { Vector3Int.down, snakeHeadDown }
+            };
+
+            directionToDeadHeadTile = new Dictionary<Vector3Int, TileBase>
+            {
+                { Vector3Int.left, snakeHeadDeadLeft },
+                { Vector3Int.right, snakeHeadDeadRight },
+                { Vector3Int.up, snakeHeadDeadUp },
+                { Vector3Int.down, snakeHeadDeadDown }
+            };
         }
     }
 }

@@ -21,6 +21,7 @@ namespace Snake
         private bool isPaused;
         private WaitForSeconds waitForSeconds;
         private int score;
+        private bool isTurned;
 
         public void OnResume()
         {
@@ -64,18 +65,50 @@ namespace Snake
                     Pause();
                 }
 
-                float vAxis = Input.GetAxisRaw("Vertical");
-                float hAxis = Input.GetAxisRaw("Horizontal");
-
-                if (vAxis != 0 || hAxis != 0)
+                if (!isTurned)
                 {
-                    boardController.rotateSnake(vAxis, hAxis);
+                    bool left = Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.A);
+                    bool right = Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.D);
+                    bool up = Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.W);
+                    bool down = Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.S);
+
+                    Vector3Int turn = Vector3Int.zero;
+
+                    if (boardController.SnakeDirection.y == 0) // Left or Right
+                    {
+                        if (up)
+                        {
+                            turn = Vector3Int.up;
+                        }
+                        else if (down)
+                        {
+                            turn = Vector3Int.down;
+                        }
+                    }
+                    else // Up or Down
+                    {
+                        if (left)
+                        {
+                            turn = Vector3Int.left;
+                        }
+                        else if (right)
+                        {
+                            turn = Vector3Int.right;
+                        }
+                    }
+
+                    if (turn != Vector3Int.zero)
+                    {
+                        isTurned = true;
+                        boardController.rotateSnake(turn);
+                    }
                 }
             }
         }
 
         private void StartGame()
         {
+            isTurned = false;
             isPaused = false;
             waitForSeconds = new WaitForSeconds(1 / gameSpeedSlider.value);
             boardController.InitBoard();
@@ -91,6 +124,7 @@ namespace Snake
             {
                 yield return waitForSeconds;
                 if (isPaused) yield break;
+                isTurned = false;
 
                 GameState gameState = boardController.GetGameState();
                 boardController.UpdateBoard(gameState);
